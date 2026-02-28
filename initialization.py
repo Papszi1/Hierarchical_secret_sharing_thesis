@@ -43,16 +43,3 @@ class Hierarchy:
         
         return True, "a csoport kvalifikált"
     
-
-
-p11 = Participant(2,2)
-p31 = Participant(3,1)
-p21 = Participant(2,1)
-print(p11)
-print(p21)
-hierarchy = Hierarchy(3)
-hierarchy.add_participant(p11)
-hierarchy.add_participant(p31)
-hierarchy.add_participant(p21)
-hierarchy.print_level(2)
-hierarchy.is_qualified([p11, p21, p31])
