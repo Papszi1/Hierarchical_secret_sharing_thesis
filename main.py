@@ -3,9 +3,10 @@ from models import Participant
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
-from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation
+from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_distribution
+import json
 
-
+Q = 2**256 - 2**32 - 977
 conn = sqlite3.connect("hierarchy.db")
 cursor = conn.cursor()
 
@@ -43,15 +44,18 @@ for row in rows:
     participant = Participant(p_id, level)
 
     if shares_str:
-        participant.shares = [int(s) for s in shares_str.split(",")] 
+        try:
+            participant.shares = json.loads(shares_str)
+        except json.JSONDecodeError:
+            print(f"Warning: Old data format found for ID {p_id}, skipping shares.")
+            participant.shares = []
 
     hierarchy.add_participant(participant)
-
 conn.commit()
 
 root = tk.Tk()
 root.title("Hierarchy Manager")
-root.geometry("600x400")
+root.geometry("2000x400")
 
 label_h = tk.Label(root, text=f"Hierarchy height (h): {hierarchy.h}", font=("Arial", 14))
 label_h.pack(pady=10)
@@ -65,7 +69,8 @@ btn_delete = tk.Button(button_frame, text="Delete Participant",
                        command=lambda: open_delete_participant(root, tree, hierarchy, conn))
 btn_new_sim = tk.Button(button_frame, text="New Simulation",
                         command=lambda: open_new_simulation(root, tree, hierarchy, conn, label_h))
-btn_distribute = tk.Button(button_frame, text="Distribute Shares")
+btn_distribute = tk.Button(button_frame, text="Distribute Shares",
+    command=lambda: handle_distribution(hierarchy, conn, tree, Q))
 btn_decrypt = tk.Button(button_frame, text="Decrypt Shares")
 
 btn_add.pack(side=tk.LEFT, padx=5)
@@ -87,8 +92,7 @@ for col in columns:
 
 for level, participants in hierarchy.levels.items():
     for p in participants:
-        shares_str = ", ".join(map(str, p.shares)) if p.shares else ""
-        tree.insert("", tk.END, values=(p.i, p.j, shares_str))
-
+        shares_display = json.dumps(p.shares) if p.shares else ""
+        tree.insert("", tk.END, values=(p.i, p.j, shares_display))
 root.mainloop()
 conn.close()

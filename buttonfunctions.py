@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 from models import Participant
+from tkinter import simpledialog, messagebox
+from decomposition import distribute_shares
 
 def open_add_participants(root, tree, hierarchy, conn):
     popup = tk.Toplevel(root)
@@ -112,3 +114,31 @@ def open_new_simulation(root, tree, hierarchy, conn, label_h):
             messagebox.showerror("Error", "Hierarchy height must be a positive integer.")
 
     tk.Button(popup, text="Start New Simulation", command=reset_hierarchy).pack(pady=10)
+
+
+
+def handle_distribution(hierarchy, conn, tree, q):
+    secret = simpledialog.askstring("Input", "Enter the secret to share:", show='*')
+    
+    if not secret:
+        return
+    try:
+        distribute_shares(secret, hierarchy, q, conn)
+        
+        for item in tree.get_children():
+            tree.delete(item)
+            
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, level, shares FROM participants")
+        rows = cursor.fetchall()
+        
+        for row in rows:
+            p_id, level, shares_json = row
+            
+            display_shares = shares_json[:30] + "..." if shares_json else ""
+            tree.insert("", "end", values=(p_id, level, display_shares))
+            
+        messagebox.showinfo("Success", "Secret has been distributed to all participants!")
+        
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
