@@ -1,7 +1,3 @@
-import os
-import numpy
-
-
 class Participant:
     def __init__(self, id_i, level_j):
         self.i = id_i
