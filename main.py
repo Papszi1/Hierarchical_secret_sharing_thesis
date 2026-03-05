@@ -46,6 +46,7 @@ for row in rows:
     if shares_str:
         try:
             participant.shares = json.loads(shares_str)
+            print(participant.shares)
         except json.JSONDecodeError:
             print(f"Warning: Old data format found for ID {p_id}, skipping shares.")
             participant.shares = []

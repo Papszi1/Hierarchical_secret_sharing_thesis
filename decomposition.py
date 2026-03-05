@@ -45,7 +45,7 @@ def distribute_shares(secret_str, hierarchy, q, conn):
                 x_im = 1 + (m * p.i * h)
                 y_im = evaluate_f(x_im, coeffs, a0, q)
 
-                p_points.append((x_im, y_im))
+                p_points.append([x_im, y_im])
             p.shares = p_points
             print(p_points)
             shares_str = json.dumps(p_points)
