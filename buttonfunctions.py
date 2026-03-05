@@ -168,12 +168,13 @@ def handle_decryption(hierarchy, tree, q):
                 if p.i == p_id:
                     participant = p
                     break
-        
+
         if participant and participant.shares:
             chosen_participants.append(participant)
             all_points.extend(participant.shares)
-
-    if not hierarchy.is_qualified(chosen_participants):
+    print(chosen_participants)
+    print(hierarchy.is_qualified(chosen_participants))
+    if not hierarchy.is_qualified(chosen_participants)[0]:
         messagebox.showerror("Not Qualified", "The selected participants do not have enough power to decrypt.")
         return
 
