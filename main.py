@@ -3,7 +3,7 @@ from models import Participant
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
-from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_distribution
+from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_distribution, handle_decryption
 import json
 
 Q = 2**256 - 2**32 - 977
@@ -72,7 +72,8 @@ btn_new_sim = tk.Button(button_frame, text="New Simulation",
                         command=lambda: open_new_simulation(root, tree, hierarchy, conn, label_h))
 btn_distribute = tk.Button(button_frame, text="Distribute Shares",
     command=lambda: handle_distribution(hierarchy, conn, tree, Q))
-btn_decrypt = tk.Button(button_frame, text="Decrypt Shares")
+btn_decrypt = tk.Button(button_frame, text="Decrypt Secret",
+    command=lambda: handle_decryption(hierarchy, tree, Q))
 
 btn_add.pack(side=tk.LEFT, padx=5)
 btn_delete.pack(side=tk.LEFT, padx=5)

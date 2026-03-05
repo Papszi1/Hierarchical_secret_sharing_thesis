@@ -3,6 +3,7 @@ from tkinter import messagebox
 from models import Participant
 from tkinter import simpledialog, messagebox
 from decomposition import distribute_shares
+from decryption import recover_secret
 
 def open_add_participants(root, tree, hierarchy, conn):
     popup = tk.Toplevel(root)
@@ -142,3 +143,47 @@ def handle_distribution(hierarchy, conn, tree, q):
         
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+
+
+
+
+def handle_decryption(hierarchy, tree, q):
+    selected_items = tree.selection()
+    
+    if not selected_items:
+        messagebox.showwarning("Selection Error", "Please select participants to decrypt.")
+        return
+
+    chosen_participants = []
+    all_points = []
+    
+    for item in selected_items:
+        row_values = tree.item(item)['values']
+        p_id = row_values[0]
+        
+        participant = None
+        for level in hierarchy.levels.values():
+            for p in level:
+                if p.i == p_id:
+                    participant = p
+                    break
+        
+        if participant and participant.shares:
+            chosen_participants.append(participant)
+            all_points.extend(participant.shares)
+
+    if not hierarchy.is_qualified(chosen_participants):
+        messagebox.showerror("Not Qualified", "The selected participants do not have enough power to decrypt.")
+        return
+
+    try:
+        h = hierarchy.h
+        recovered_int = recover_secret(all_points, h, q)
+        
+        recovered_str = recovered_int.to_bytes((recovered_int.bit_length() + 7) // 8, 'big').decode('utf-8')
+        
+        messagebox.showinfo("Secret Recovered", f"The hidden secret is:\n\n{recovered_str}")
+        
+    except Exception as e:
+        messagebox.showerror("Decryption Failed", f"Could not recover secret. Error: {str(e)}")

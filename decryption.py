@@ -1,5 +1,3 @@
-import json
-
 def modular_inverse(n, q):
     return pow(n, -1, q)
 
@@ -45,54 +43,3 @@ def recover_secret(points, h, q):
         recovered_int ^= k
     
     return recovered_int
-
-
-
-
-if __name__ == "__main__":
-    # --- SETUP ---
-    Q_TEST = 2**256 - 2**32 - 977
-    H_HEIGHT = 3
-    SECRET_STR = "goat"
-    
-    # 1. Convert secret to int
-    s_int = int.from_bytes(SECRET_STR.encode('utf-8'), byteorder='big')
-    print(f"Original Secret Int: {s_int}")
-
-    # 2. Manually create coefficients (k1, k2, k3)
-    # k1 ^ k2 ^ k3 must = s_int
-    import secrets
-    k1 = secrets.randbelow(Q_TEST)
-    k2 = secrets.randbelow(Q_TEST)
-    k3 = s_int ^ k1 ^ k2
-    coeffs = [k1, k2, k3]
-    
-    # 3. Random a0
-    a0 = secrets.randbelow(Q_TEST)
-    
-    # 4. Create f(x) = a0 + k1*x + k2*x^2 + k3*x^3
-    def f(x):
-        return (a0 + k1*x + k2*x**2 + k3*x**3) % Q_TEST
-
-    # 5. Generate points (We need h+1 = 4 points)
-    # Let's pick random x values
-    test_points = []
-    for i in range(1, 5):
-        x = i * 10 # Just some x values
-        test_points.append([x, f(x)])
-    
-    print(f"Generated 4 points for the curve.")
-
-    # --- THE RECOVERY TEST ---
-    print("\n--- Running Recovery ---")
-    recovered_s_int = recover_secret(test_points, H_HEIGHT, Q_TEST)
-    
-    print(f"Recovered Int: {recovered_s_int}")
-    
-    if s_int == recovered_s_int:
-        print("SUCCESS! The secret was perfectly reconstructed.")
-        # Convert back to string
-        final_str = recovered_s_int.to_bytes((recovered_s_int.bit_length() + 7) // 8, 'big').decode('utf-8')
-        print(f"Recovered String: {final_str}")
-    else:
-        print("FAILURE. The integers do not match.")
