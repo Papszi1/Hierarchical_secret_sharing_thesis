@@ -3,7 +3,7 @@ from models import Participant
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
-from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_distribution, handle_decryption
+from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input
 import json
 
 Q = 2**256 - 2**32 - 977
@@ -70,8 +70,16 @@ btn_delete = tk.Button(button_frame, text="Delete Participant",
                        command=lambda: open_delete_participant(root, tree, hierarchy, conn))
 btn_new_sim = tk.Button(button_frame, text="New Simulation",
                         command=lambda: open_new_simulation(root, tree, hierarchy, conn, label_h))
-btn_distribute = tk.Button(button_frame, text="Distribute Shares",
-    command=lambda: handle_distribution(hierarchy, conn, tree, Q))
+btn_distribute = tk.Button(
+    button_frame, 
+    text="Type Secret",
+    command=lambda: handle_manual_input(hierarchy, conn, tree, Q)
+)
+btn_file = tk.Button(
+    button_frame, 
+    text="Upload Key File",
+    command=lambda: handle_file_input(hierarchy, conn, tree, Q)
+)
 btn_decrypt = tk.Button(button_frame, text="Decrypt Secret",
     command=lambda: handle_decryption(hierarchy, tree, Q))
 
@@ -79,6 +87,7 @@ btn_add.pack(side=tk.LEFT, padx=5)
 btn_delete.pack(side=tk.LEFT, padx=5)
 btn_new_sim.pack(side=tk.LEFT, padx=5)
 btn_distribute.pack(side=tk.LEFT, padx=5)
+btn_file.pack(side=tk.LEFT, padx=5)
 btn_decrypt.pack(side=tk.LEFT, padx=5)
 
 label = tk.Label(root, text="Participants")
