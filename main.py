@@ -3,7 +3,7 @@ from models import Participant
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
-from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input
+from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel
 import json
 
 Q = 2**256 - 2**32 - 977
@@ -82,6 +82,13 @@ btn_file = tk.Button(
 )
 btn_decrypt = tk.Button(button_frame, text="Decrypt Secret",
     command=lambda: handle_decryption(hierarchy, tree, Q))
+btn_attack = tk.Button(
+    button_frame, 
+    text="Security Sandbox",
+    command=lambda: open_attack_panel(hierarchy, Q), 
+    bg="#f44336", 
+    fg="white"
+)
 
 btn_add.pack(side=tk.LEFT, padx=5)
 btn_delete.pack(side=tk.LEFT, padx=5)
@@ -89,6 +96,7 @@ btn_new_sim.pack(side=tk.LEFT, padx=5)
 btn_distribute.pack(side=tk.LEFT, padx=5)
 btn_file.pack(side=tk.LEFT, padx=5)
 btn_decrypt.pack(side=tk.LEFT, padx=5)
+btn_attack.pack(side=tk.LEFT, padx=5)
 
 label = tk.Label(root, text="Participants")
 label.pack(anchor="w", padx=10)

@@ -4,6 +4,7 @@ from models import Participant
 from tkinter import simpledialog, messagebox
 from decomposition import distribute_shares
 from decryption import recover_secret
+import json
 from tkinter import filedialog
 
 def open_add_participants(root, tree, hierarchy, conn):
@@ -207,3 +208,37 @@ def handle_decryption(hierarchy, tree, q):
         
     except Exception as e:
         messagebox.showerror("Decryption Failed", f"Could not recover secret. Error: {str(e)}")
+
+
+def open_attack_panel(hierarchy, q):
+    attack_win = tk.Toplevel()
+    attack_win.title("Security Sandbox: Manual Attack Simulation")
+    attack_win.geometry("500x400")
+
+    tk.Label(attack_win, text="Input manual shares to test the system's resilience", font=("Arial", 10, "bold")).pack(pady=10)
+    
+    tk.Label(attack_win, text="Enter shares as JSON list: [[x1, y1], [x2, y2], ...]").pack()
+    input_area = tk.Text(attack_win, height=10, width=50)
+    input_area.pack(padx=10, pady=5)
+
+    def run_manual_test():
+        try:
+            raw_data = input_area.get("1.0", tk.END).strip()
+            manual_points = json.loads(raw_data)
+            
+            recovered_int = recover_secret(manual_points, hierarchy.h, q)
+            
+            try:
+                recovered_str = recovered_int.to_bytes((recovered_int.bit_length() + 7) // 8, 'big').decode('utf-8', errors='replace')
+            except:
+                recovered_str = "[Binary Data / Non-readable]"
+
+            messagebox.showwarning("Reconstruction Result", 
+                f"Recovered Integer: {str(recovered_int)[:50]}...\n\n"
+                f"Decoded String: {recovered_str}\n\n"
+                "As you can see, unauthorized or fake data results in total gibberish.")
+                
+        except Exception as e:
+            messagebox.showerror("Format Error", "Please enter valid JSON points: [[x,y],...]")
+
+    tk.Button(attack_win, text="Attempt Recovery", command=run_manual_test, bg="red", fg="white").pack(pady=10)
