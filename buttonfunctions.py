@@ -4,6 +4,7 @@ from models import Participant
 from tkinter import simpledialog, messagebox
 from decomposition import distribute_shares
 from decryption import recover_secret
+from tkinter import filedialog
 
 def open_add_participants(root, tree, hierarchy, conn):
     popup = tk.Toplevel(root)
@@ -118,10 +119,14 @@ def open_new_simulation(root, tree, hierarchy, conn, label_h):
 
 
 
-def handle_distribution(hierarchy, conn, tree, q):
-    secret = simpledialog.askstring("Input", "Enter the secret to share:", show='*')
+def handle_distribution_logic(secret, hierarchy, conn, tree, q):
+    max_chars = q.bit_length() // 8 
     
-    if not secret:
+    if len(secret.encode('utf-8')) > max_chars:
+        messagebox.showerror("Secret Too Long", 
+            f"The secret is {len(secret)} characters long.\n"
+            f"Because we use a 256-bit prime (Q), the maximum length is {max_chars} characters.\n\n"
+            "Please use a shorter secret or a smaller key file.")
         return
     try:
         distribute_shares(secret, hierarchy, q, conn)
@@ -135,7 +140,6 @@ def handle_distribution(hierarchy, conn, tree, q):
         
         for row in rows:
             p_id, level, shares_json = row
-            
             display_shares = shares_json[:30] + "..." if shares_json else ""
             tree.insert("", "end", values=(p_id, level, display_shares))
             
@@ -144,8 +148,23 @@ def handle_distribution(hierarchy, conn, tree, q):
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
+def handle_manual_input(hierarchy, conn, tree, q):
+    secret = simpledialog.askstring("Input", "Enter the secret to share:", show='*')
+    if secret:
+        handle_distribution_logic(secret, hierarchy, conn, tree, q)
 
-
+def handle_file_input(hierarchy, conn, tree, q):
+    file_path = filedialog.askopenfilename(
+        title="Select Secret File",
+        filetypes=[("Text files", "*.txt"), ("Key files", "*.key"), ("All files", "*.*")]
+    )
+    if file_path:
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                secret_content = f.read().strip() 
+            handle_distribution_logic(secret_content, hierarchy, conn, tree, q)
+        except Exception as e:
+            messagebox.showerror("File Error", f"Could not read file: {e}")
 
 
 def handle_decryption(hierarchy, tree, q):
