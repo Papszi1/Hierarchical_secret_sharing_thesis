@@ -65,30 +65,19 @@ button_frame = tk.Frame(root)
 button_frame.pack(pady=10)
 
 btn_add = tk.Button(button_frame, text="Add Participant",
-                    command=lambda: open_add_participants(root, tree, hierarchy, conn))
+    command=lambda: open_add_participants(root, tree, hierarchy, conn))
 btn_delete = tk.Button(button_frame, text="Delete Participant",
-                       command=lambda: open_delete_participant(root, tree, hierarchy, conn))
+    command=lambda: open_delete_participant(root, tree, hierarchy, conn))
 btn_new_sim = tk.Button(button_frame, text="New Simulation",
-                        command=lambda: open_new_simulation(root, tree, hierarchy, conn, label_h))
-btn_distribute = tk.Button(
-    button_frame, 
-    text="Type Secret",
-    command=lambda: handle_manual_input(hierarchy, conn, tree, Q)
-)
-btn_file = tk.Button(
-    button_frame, 
-    text="Upload Key File",
-    command=lambda: handle_file_input(hierarchy, conn, tree, Q)
-)
+    command=lambda: open_new_simulation(root, tree, hierarchy, conn, label_h))
+btn_distribute = tk.Button(button_frame, text="Type Secret",
+    command=lambda: handle_manual_input(hierarchy, conn, tree, Q))
+btn_file = tk.Button(button_frame,text="Upload Key File",
+    command=lambda: handle_file_input(hierarchy, conn, tree, Q))
 btn_decrypt = tk.Button(button_frame, text="Decrypt Secret",
     command=lambda: handle_decryption(hierarchy, tree, Q))
-btn_attack = tk.Button(
-    button_frame, 
-    text="Security Sandbox",
-    command=lambda: open_attack_panel(hierarchy, Q), 
-    bg="#f44336", 
-    fg="white"
-)
+btn_attack = tk.Button(button_frame, text="Security Sandbox",
+    command=lambda: open_attack_panel(hierarchy, Q), bg="#f44336", fg="white")
 
 btn_add.pack(side=tk.LEFT, padx=5)
 btn_delete.pack(side=tk.LEFT, padx=5)
