@@ -3,7 +3,7 @@ from models import Participant
 import sqlite3
 import tkinter as tk
 from tkinter import ttk
-from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel
+from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel, run_collusion_brute_force
 import json
 
 Q = 2**256 - 2**32 - 977
@@ -65,20 +65,38 @@ button_frame = tk.Frame(root)
 button_frame.pack(pady=10)
 
 btn_add = tk.Button(button_frame, text="Add Participant",
-    command=lambda: open_add_participants(root, tree, hierarchy, conn))
+                    command=lambda: open_add_participants(root, tree, hierarchy, conn))
 btn_delete = tk.Button(button_frame, text="Delete Participant",
-    command=lambda: open_delete_participant(root, tree, hierarchy, conn))
+                       command=lambda: open_delete_participant(root, tree, hierarchy, conn))
 btn_new_sim = tk.Button(button_frame, text="New Simulation",
-    command=lambda: open_new_simulation(root, tree, hierarchy, conn, label_h))
-btn_distribute = tk.Button(button_frame, text="Type Secret",
-    command=lambda: handle_manual_input(hierarchy, conn, tree, Q))
-btn_file = tk.Button(button_frame,text="Upload Key File",
-    command=lambda: handle_file_input(hierarchy, conn, tree, Q))
+                        command=lambda: open_new_simulation(root, tree, hierarchy, conn, label_h))
+btn_distribute = tk.Button(
+    button_frame, 
+    text="Type Secret",
+    command=lambda: handle_manual_input(hierarchy, conn, tree, Q)
+)
+btn_file = tk.Button(
+    button_frame, 
+    text="Upload Key File",
+    command=lambda: handle_file_input(hierarchy, conn, tree, Q)
+)
 btn_decrypt = tk.Button(button_frame, text="Decrypt Secret",
     command=lambda: handle_decryption(hierarchy, tree, Q))
-btn_attack = tk.Button(button_frame, text="Security Sandbox",
-    command=lambda: open_attack_panel(hierarchy, Q), bg="#f44336", fg="white")
-
+btn_attack = tk.Button(
+    button_frame, 
+    text="Security Sandbox",
+    command=lambda: open_attack_panel(hierarchy, Q), 
+    bg="#f44336", 
+    fg="white"
+)
+btn_brute = tk.Button(
+    button_frame, 
+    text="Brute-Force Sim", 
+    command=lambda: run_collusion_brute_force(tree, hierarchy, Q),
+    bg="#607D8B", 
+    fg="white",
+    font=("Arial", 10, "bold")
+)
 btn_add.pack(side=tk.LEFT, padx=5)
 btn_delete.pack(side=tk.LEFT, padx=5)
 btn_new_sim.pack(side=tk.LEFT, padx=5)
@@ -86,6 +104,7 @@ btn_distribute.pack(side=tk.LEFT, padx=5)
 btn_file.pack(side=tk.LEFT, padx=5)
 btn_decrypt.pack(side=tk.LEFT, padx=5)
 btn_attack.pack(side=tk.LEFT, padx=5)
+btn_brute.pack(side=tk.LEFT, padx=5)
 
 label = tk.Label(root, text="Participants")
 label.pack(anchor="w", padx=10)
