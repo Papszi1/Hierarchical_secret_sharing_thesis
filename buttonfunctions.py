@@ -248,71 +248,86 @@ def open_attack_panel(hierarchy, q):
 def run_collusion_brute_force(main_tree, hierarchy, q):
     selected_items = main_tree.selection()
     if not selected_items:
-        messagebox.showwarning("Selection Required", "Please select the group of colluding participants from the list.")
+        messagebox.showwarning("Selection Required", "Please select participants from the list.")
         return
 
     all_stolen_shares = []
     total_power = 0
     participant_ids = []
 
+    # NEW LOGIC: Look up the data in the hierarchy object, NOT the table string
     for item_id in selected_items:
         item = main_tree.item(item_id)
-        p_id = item['values'][0]
-        p_power = int(item['values'][1]) 
-        p_shares = json.loads(item['values'][2]) 
-        participant_ids.append(str(p_id))
-        total_power += p_power
-        all_stolen_shares.extend(p_shares)
+        p_id = item['values'][0] # This is the ID (e.g., 1, 2, 3)
+        
+        # Search the hierarchy levels for this specific participant
+        found_participant = None
+        for level, participants in hierarchy.levels.items():
+            for p in participants:
+                if str(p.i) == str(p_id):
+                    found_participant = p
+                    break
+            if found_participant: break
+        
+        if found_participant and found_participant.shares:
+            all_stolen_shares.extend(found_participant.shares)
+            total_power += found_participant.j
+            participant_ids.append(str(p_id))
 
     h = hierarchy.h
     required_power = h + 1
 
     if total_power >= required_power:
-        messagebox.showinfo("Access Granted", 
-            f"This group has Power {total_power} (Threshold {required_power}).\n"
-            "They don't need to brute-force; they can just decrypt normally!")
+        messagebox.showinfo("Access Granted", f"Power {total_power} is sufficient to decrypt normally.")
         return
 
+    if not all_stolen_shares:
+        messagebox.showerror("Error", "Could not retrieve shares for the selected IDs.")
+        return
+
+    # --- UI Setup ---
     sim_win = tk.Toplevel()
     sim_win.title("Collusion Attack Simulator")
     sim_win.geometry("800x600")
     
-    tk.Label(sim_win, text="CRIMINAL COLLUSION LOG: UNAUTHORIZED ACCESS ATTEMPT", 
+    tk.Label(sim_win, text="UNAUTHORIZED ACCESS ATTEMPT", 
              font=("Courier New", 12, "bold"), fg="red").pack(pady=10)
 
     txt = tk.Text(sim_win, font=("Courier New", 9), bg="#0a0a0a", fg="#33ff33")
     txt.pack(expand=True, fill="both", padx=15, pady=10)
     
-    missing_points = required_power - total_power
     txt.insert(tk.END, f"[LOG] Colluding IDs: {', '.join(participant_ids)}\n")
-    txt.insert(tk.END, f"[LOG] Combined Power: {total_power} / Required: {required_power}\n")
-    txt.insert(tk.END, f"[LOG] Security Gap: {missing_points} share(s) missing.\n")
-    txt.insert(tk.END, f"[LOG] Initializing Brute-Force on Prime Field GF(Q)...\n")
+    txt.insert(tk.END, f"[LOG] Combined Power: {total_power} / {required_power}\n")
     txt.insert(tk.END, "="*75 + "\n\n")
 
-    fake_x = 123456789 
+    # --- Simulation Engine ---
+    fake_x = 999999
     from decryption import recover_secret 
 
     for i in range(1, 51):
         guess_y = random.randint(1, q - 1)
-        
         test_points = all_stolen_shares + [[fake_x, guess_y]]
         
+        # Ensure the math has exactly h+1 points to generate high-entropy junk
+        while len(test_points) < required_power:
+            test_points.append([random.randint(100, 100000), random.randint(1, q-1)])
+            
         reconstruction_subset = test_points[:required_power]
-        
         recovered_int = recover_secret(reconstruction_subset, h, q)
         
         try:
-            r_bytes = recovered_int.to_bytes((recovered_int.bit_length() + 7) // 8, 'big')
-            r_str = r_bytes.decode('utf-8', errors='replace')
-            clean_str = "".join(c if c.isprintable() else "?" for c in r_str)[:25]
+            byte_len = (recovered_int.bit_length() + 7) // 8
+            if byte_len > 0:
+                r_bytes = recovered_int.to_bytes(byte_len, 'big')
+                r_str = r_bytes.decode('utf-8', errors='replace')
+                clean_str = "".join(c if c.isprintable() else "?" for c in r_str)[:25]
+            else:
+                clean_str = "[ZERO_RESULT]"
         except:
-            clean_str = "[NULL_DATA]"
+            clean_str = "[MATH_ERROR]"
 
-        txt.insert(tk.END, f"Trial {i:02d} | Random Y Guess | Secret: {clean_str}\n")
-        txt.see(tk.END)
+        txt.insert(tk.END, f"Trial {i:02d} | Result: {clean_str}\n")
 
     txt.insert(tk.END, "\n" + "="*75 + "\n")
-    txt.insert(tk.END, "[RESULT] Brute-force failed. Zero information leaked.\n")
-    txt.insert(tk.END, "[THEORY] Perfect Secrecy: T-1 shares yield no more info than 0 shares.")
+    txt.insert(tk.END, "[RESULT] Brute-force failed. Perfect Secrecy maintained.")
     txt.config(state="disabled")
