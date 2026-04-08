@@ -1,9 +1,9 @@
+from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel, run_collusion_brute_force, open_bracket_sharing_ui
 from initialization import Hierarchy
 from models import Participant
-import sqlite3
-import tkinter as tk
 from tkinter import ttk
-from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel, run_collusion_brute_force
+import tkinter as tk
+import sqlite3
 import json
 
 Q = 2**256 - 2**32 - 977
@@ -97,6 +97,11 @@ btn_brute = tk.Button(
     fg="white",
     font=("Arial", 10, "bold")
 )
+bracket_btn = tk.Button(
+    button_frame, 
+    text="Bracketed Sharing", 
+    command=lambda: open_bracket_sharing_ui(hierarchy, Q, conn, tree)
+)
 btn_add.pack(side=tk.LEFT, padx=5)
 btn_delete.pack(side=tk.LEFT, padx=5)
 btn_new_sim.pack(side=tk.LEFT, padx=5)
@@ -105,6 +110,7 @@ btn_file.pack(side=tk.LEFT, padx=5)
 btn_decrypt.pack(side=tk.LEFT, padx=5)
 btn_attack.pack(side=tk.LEFT, padx=5)
 btn_brute.pack(side=tk.LEFT, padx=5)
+bracket_btn.pack(side=tk.LEFT, padx=5)
 
 label = tk.Label(root, text="Participants")
 label.pack(anchor="w", padx=10)

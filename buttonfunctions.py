@@ -255,12 +255,10 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
     total_power = 0
     participant_ids = []
 
-    # NEW LOGIC: Look up the data in the hierarchy object, NOT the table string
     for item_id in selected_items:
         item = main_tree.item(item_id)
-        p_id = item['values'][0] # This is the ID (e.g., 1, 2, 3)
-        
-        # Search the hierarchy levels for this specific participant
+        p_id = item['values'][0] 
+
         found_participant = None
         for level, participants in hierarchy.levels.items():
             for p in participants:
@@ -285,7 +283,6 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
         messagebox.showerror("Error", "Could not retrieve shares for the selected IDs.")
         return
 
-    # --- UI Setup ---
     sim_win = tk.Toplevel()
     sim_win.title("Collusion Attack Simulator")
     sim_win.geometry("800x600")
@@ -300,7 +297,6 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
     txt.insert(tk.END, f"[LOG] Combined Power: {total_power} / {required_power}\n")
     txt.insert(tk.END, "="*75 + "\n\n")
 
-    # --- Simulation Engine ---
     fake_x = 999999
     from decryption import recover_secret 
 
@@ -308,7 +304,6 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
         guess_y = random.randint(1, q - 1)
         test_points = all_stolen_shares + [[fake_x, guess_y]]
         
-        # Ensure the math has exactly h+1 points to generate high-entropy junk
         while len(test_points) < required_power:
             test_points.append([random.randint(100, 100000), random.randint(1, q-1)])
             
@@ -331,3 +326,112 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
     txt.insert(tk.END, "\n" + "="*75 + "\n")
     txt.insert(tk.END, "[RESULT] Brute-force failed. Perfect Secrecy maintained.")
     txt.config(state="disabled")
+
+
+
+def run_bracketed_sharing(secret_str, hierarchy, q, conn, set1_input, set2_input):
+    try:
+        s1_levels = [int(x.strip()) for x in set1_input.split(",") if x.strip()]
+        s2_levels = [int(x.strip()) for x in set2_input.split(",") if x.strip()]
+        
+        original_levels = hierarchy.levels.copy()
+
+        hierarchy.levels = {j: original_levels[j] for j in s1_levels if j in original_levels}
+        if hierarchy.levels:
+            distribute_shares(secret_str, hierarchy, q, conn, extra=0)
+
+        hierarchy.levels = {j: original_levels[j] for j in s2_levels if j in original_levels}
+        if hierarchy.levels:
+            distribute_shares(secret_str, hierarchy, q, conn, extra=400)
+
+        hierarchy.levels = original_levels
+        
+        messagebox.showinfo("Success", "Shares distributed with bracket offsets!")
+        return True 
+        
+    except Exception as e:
+        messagebox.showerror("Error", f"Bracket distribution failed: {e}")
+        return False
+
+def run_bracketed_sharing(secret_str, hierarchy, q, conn, tree, set1_input, set2_input):
+    try:
+        s1_levels = [int(x.strip()) for x in set1_input.split(",") if x.strip()]
+        s2_levels = [int(x.strip()) for x in set2_input.split(",") if x.strip()]
+        
+        h = hierarchy.h
+        original_levels = hierarchy.levels.copy()
+
+        set1_hierarchy_levels = {j: [] for j in range(1, h + 1)}
+        for j in s1_levels:
+            if j in original_levels:
+                set1_hierarchy_levels[j] = original_levels[j]
+        
+        hierarchy.levels = set1_hierarchy_levels
+        distribute_shares(secret_str, hierarchy, q, conn, extra=0)
+
+        set2_hierarchy_levels = {j: [] for j in range(1, h + 1)}
+        for j in s2_levels:
+            if j in original_levels:
+                set2_hierarchy_levels[j] = original_levels[j]
+        
+        hierarchy.levels = set2_hierarchy_levels
+        distribute_shares(secret_str, hierarchy, q, conn, extra=400)
+
+        hierarchy.levels = original_levels
+
+        for item in tree.get_children():
+            tree.delete(item)
+            
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, level, shares FROM participants")
+        for row in cursor.fetchall():
+            p_id, p_level, shares_json = row
+            display_shares = (shares_json[:30] + "...") if shares_json else ""
+            tree.insert("", "end", values=(p_id, p_level, display_shares))
+            
+        messagebox.showinfo("Success", "Bracketed shares distributed successfully!")
+
+    except Exception as e:
+        hierarchy.levels = original_levels
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+def open_bracket_sharing_ui(hierarchy, q, conn, tree):
+    top = tk.Toplevel()
+    top.title("Bracketed Distribution")
+    top.geometry("400x380")
+
+    tk.Label(top, text="Secret to Share:", font=("Arial", 10, "bold")).pack(pady=10)
+    secret_entry = tk.Entry(top, width=40)
+    secret_entry.pack(pady=5)
+    secret_entry.focus_set()
+
+    tk.Label(top, text="Set 1 (No Offset):\n(e.g., 1,2)").pack(pady=5)
+    set1_entry = tk.Entry(top, width=20)
+    set1_entry.insert(0, "1,2")
+    set1_entry.pack(pady=5)
+
+    tk.Label(top, text="Set 2 (Offset +400):\n(e.g., 3,4,5)").pack(pady=5)
+    set2_entry = tk.Entry(top, width=20)
+    set2_entry.insert(0, "3,4,5")
+    set2_entry.pack(pady=5)
+
+    def start_process():
+        print("Button Clicked!")
+        val_secret = secret_entry.get()
+        val_s1 = set1_entry.get()
+        val_s2 = set2_entry.get()
+
+        if not val_secret:
+            messagebox.showwarning("Warning", "Secret is empty.")
+            return
+        
+        run_bracketed_sharing(val_secret, hierarchy, q, conn, tree, val_s1, val_s2)
+        
+        top.destroy()
+
+    btn = tk.Button(top, text="Execute Bracketed Distribution", 
+                    command=start_process, 
+                    bg="#2ecc71", fg="white", 
+                    font=("Arial", 11, "bold"), 
+                    padx=10, pady=10)
+    btn.pack(pady=20)
