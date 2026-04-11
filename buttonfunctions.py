@@ -255,9 +255,12 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
     total_power = 0
     participant_ids = []
 
+    # NEW LOGIC: Look up the data in the hierarchy object, NOT the table string
     for item_id in selected_items:
         item = main_tree.item(item_id)
-        p_id = item['values'][0]
+        p_id = item['values'][0] # This is the ID (e.g., 1, 2, 3)
+        
+        # Search the hierarchy levels for this specific participant
         found_participant = None
         for level, participants in hierarchy.levels.items():
             for p in participants:
@@ -297,6 +300,7 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
     txt.insert(tk.END, f"[LOG] Combined Power: {total_power} / {required_power}\n")
     txt.insert(tk.END, "="*75 + "\n\n")
 
+    # --- Simulation Engine ---
     fake_x = 999999
     from decryption import recover_secret 
 
@@ -304,6 +308,7 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
         guess_y = random.randint(1, q - 1)
         test_points = all_stolen_shares + [[fake_x, guess_y]]
         
+        # Ensure the math has exactly h+1 points to generate high-entropy junk
         while len(test_points) < required_power:
             test_points.append([random.randint(100, 100000), random.randint(1, q-1)])
             

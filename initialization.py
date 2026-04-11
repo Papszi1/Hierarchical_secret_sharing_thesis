@@ -1,5 +1,3 @@
-import os
-import numpy
 from models import Participant
 import math
 
@@ -39,7 +37,7 @@ class Hierarchy:
             count_at_level_j = len([p for p in subset if p.j == j])
             limit = math.ceil((self.h + 1) / j) - 1
             if count_at_level_j > limit:
-                return False, f"Túl sok résztvevő a(z) {j}. szinten! A limit: {limit}"
+                return False, f"Tul sok resztvevo a(z) {j}. szinten! A limit: {limit}"
         
         return True, "a csoport kvalifikált"
     
