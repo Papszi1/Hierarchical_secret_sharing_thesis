@@ -26,13 +26,13 @@ def evaluate_f(x, coeffs, a0, q):
     res = (res * x + a0) % q
     return res
 
-def distribute_shares(secret_str, hierarchy, q, conn):
+def distribute_shares(secret_str, hierarchy, q, conn, extra = 0):
     s_int = string_to_int(secret_str)
     h = hierarchy.h
     print(s_int)
 
     coeffs = generate_coefficients(s_int, h, q)
-    a0 = secrets.randbelow(q)
+    a0 = secrets.randbelow(q) + extra
     cursor = conn.cursor()
 
     for j in range(1, h + 1):
@@ -42,7 +42,7 @@ def distribute_shares(secret_str, hierarchy, q, conn):
             p_points = []
 
             for m in range(1, j + 1):
-                x_im = 1 + (m * p.i * h)
+                x_im = 1 + (p.i * (h + 1)) + m
                 y_im = evaluate_f(x_im, coeffs, a0, q)
 
                 p_points.append([x_im, y_im])
