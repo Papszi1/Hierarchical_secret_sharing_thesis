@@ -1,4 +1,4 @@
-from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel, run_collusion_brute_force, open_bracket_sharing_ui
+from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel, run_collusion_brute_force, open_bracket_sharing_ui, visualize_cubic_discovery
 from initialization import Hierarchy
 from models import Participant
 from tkinter import ttk
@@ -58,7 +58,7 @@ root = tk.Tk()
 root.title("Hierarchy Manager")
 root.geometry("2000x400")
 
-label_h = tk.Label(root, text=f"Hierarchy height (h): {hierarchy.h}", font=("Arial", 14))
+label_h = tk.Label(root, text=f"Hierarchy height (h): {hierarchy.h}, points needed to decrypt the data: {hierarchy.h + 1}", font=("Arial", 14))
 label_h.pack(pady=10)
 
 button_frame = tk.Frame(root)
@@ -102,6 +102,14 @@ bracket_btn = tk.Button(
     text="Bracketed Sharing", 
     command=lambda: open_bracket_sharing_ui(hierarchy, Q, conn, tree)
 )
+visual_btn = tk.Button(
+    button_frame, 
+    text="Visual Demo", 
+    command=lambda: visualize_cubic_discovery(),
+    bg="#3498db", 
+    fg="white",
+    font=("Arial", 10, "bold")
+)
 btn_add.pack(side=tk.LEFT, padx=5)
 btn_delete.pack(side=tk.LEFT, padx=5)
 btn_new_sim.pack(side=tk.LEFT, padx=5)
@@ -111,6 +119,7 @@ btn_decrypt.pack(side=tk.LEFT, padx=5)
 btn_attack.pack(side=tk.LEFT, padx=5)
 btn_brute.pack(side=tk.LEFT, padx=5)
 bracket_btn.pack(side=tk.LEFT, padx=5)
+visual_btn.pack(side=tk.LEFT, padx=10, pady=10)
 
 label = tk.Label(root, text="Participants")
 label.pack(anchor="w", padx=10)

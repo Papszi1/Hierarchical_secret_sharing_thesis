@@ -7,6 +7,9 @@ from decryption import recover_secret
 import json
 from tkinter import filedialog
 import random
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.interpolate import lagrange
 
 def open_add_participants(root, tree, hierarchy, conn):
     popup = tk.Toplevel(root)
@@ -435,3 +438,62 @@ def open_bracket_sharing_ui(hierarchy, q, conn, tree):
                     font=("Arial", 11, "bold"), 
                     padx=10, pady=10)
     btn.pack(pady=20)
+
+
+
+def visualize_cubic_discovery():
+    try:
+        true_coeffs = [42, 5, 10, -4] 
+        
+        def f_true(x):
+            return (true_coeffs[3] * x**3 + 
+                    true_coeffs[2] * x**2 + 
+                    true_coeffs[1] * x + 
+                    true_coeffs[0])
+
+        x_points = [0.5, 1.5, 3.0, 4.5] 
+        y_points = [f_true(x) for x in x_points]
+
+        plt.figure(figsize=(12, 8))
+        x_plot = np.linspace(-1, 5.5, 250)
+
+        colors = ['red', 'orange', 'purple', 'green']
+        styles = [':', '--', '-.', '-']
+        labels = [
+            '1 Point (Constant/Flat)', 
+            '2 Points (Linear Guess)', 
+            '3 Points (Quadratic Guess)', 
+            '4 Points (TRUE CUBIC LOCKED)'
+        ]
+
+        for i in range(1, 5):
+            subset_x = x_points[:i]
+            subset_y = y_points[:i]
+            
+            lp = lagrange(subset_x, subset_y)
+            y_plot = lp(x_plot)
+            
+            plt.plot(x_plot, y_plot, linestyle=styles[i-1], color=colors[i-1], 
+                     linewidth=2.5, label=labels[i-1], alpha=0.8)
+            
+            plt.scatter(subset_x, subset_y, color=colors[i-1], s=120, 
+                        edgecolors='black', zorder=5)
+
+        plt.title(f"Reconstructing a Cubic Secret (h=3)\n$f(x) = {true_coeffs[3]}x^3 + {true_coeffs[2]}x^2 + {true_coeffs[1]}x + {true_coeffs[0]}$", 
+                  fontsize=14, fontweight='bold')
+        plt.xlabel("X (Participant IDs)", fontsize=12)
+        plt.ylabel("Y (Computed Shares)", fontsize=12)
+        
+        
+        plt.axvline(0, color='black', linewidth=1, alpha=0.5)
+        plt.axhline(0, color='black', linewidth=1, alpha=0.5)
+        
+        # Adjusting limits so the S-curve is visible
+        plt.ylim(-200, 200) 
+        plt.legend(loc='upper right')
+        plt.grid(True, linestyle='--', alpha=0.4)
+        
+        plt.show()
+
+    except Exception as e:
+        messagebox.showerror("Error", f"Visualization failed: {e}")
