@@ -22,7 +22,7 @@ h = 3
 if row is None:
     cursor.execute("INSERT INTO hierarchy_settings (h) VALUES (?)", (h,))
     conn.commit()
-    print(f"Hierarchy height stored: {h}")
+    print(f"Hierarchy height stored: {h}, points needed to decrypt the data: {h+1}")
 else:
     h = row[0]
     print(f"Hierarchy height loaded from DB: {h}")

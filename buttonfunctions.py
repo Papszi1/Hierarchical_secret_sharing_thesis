@@ -112,7 +112,7 @@ def open_new_simulation(root, tree, hierarchy, conn, label_h):
             for item in tree.get_children():
                 tree.delete(item)
 
-            label_h.config(text=f"Hierarchy height (h): {new_h}")
+            label_h.config(text=f"Hierarchy height (h): {new_h}, points needed to decrypt the data: {new_h+1}")
 
             height_entry.delete(0, tk.END)
             popup.destroy()
