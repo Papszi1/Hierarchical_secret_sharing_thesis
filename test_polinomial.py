@@ -203,7 +203,7 @@ def test_add_participant_valid():
 def test_add_participant_invalid_level():
     h = Hierarchy(3)
     p = create_p(1, 4) 
-    with pytest.raises(ValueError, match="Érvénytelen szint"):
+    with pytest.raises(ValueError, match="Ervenytelen szint"):
         h.add_participant(p)
 
 def test_is_qualified_power_threshold():
@@ -237,4 +237,4 @@ def test_is_qualified_success():
     
     qualified, message = h.is_qualified([p1, p2])
     assert qualified is True
-    assert "kvalifikált" in message
+    assert "kvalifikalt" in message

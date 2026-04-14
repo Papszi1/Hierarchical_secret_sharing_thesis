@@ -16,7 +16,7 @@ def open_add_participants(root, tree, hierarchy, conn):
     popup.title("Add Participant")
     popup.geometry("300x150")
 
-    tk.Label(popup, text=f"Add Participant (Level 1-{hierarchy.h})").pack(pady=5)
+    tk.Label(popup, text=f"Add Participant (Level 1-{hierarchy.h})").pack()
     level_entry = tk.Entry(popup)
     level_entry.pack(pady=5)
 
@@ -31,8 +31,7 @@ def open_add_participants(root, tree, hierarchy, conn):
             max_id = cursor.fetchone()[0]
             next_id = 1 if max_id is None else max_id + 1
 
-            cursor.execute("INSERT INTO participants (id, level, shares) VALUES (?, ?, ?)",
-                           (next_id, level, None))
+            cursor.execute("INSERT INTO participants (id, level, shares) VALUES (?, ?, ?)", (next_id, level, None))
             conn.commit()
 
             participant = Participant(next_id, level)
@@ -43,8 +42,7 @@ def open_add_participants(root, tree, hierarchy, conn):
 
         except ValueError:
             messagebox.showerror("Error", f"Level must be an integer between 1 and {hierarchy.h}.")
-
-    tk.Button(popup, text="Add Participant", command=add_participant).pack(pady=10)
+    tk.Button(popup, text="Add Participant", command=add_participant).pack()
 
 
 def open_delete_participant(root, tree, hierarchy, conn):
@@ -52,9 +50,9 @@ def open_delete_participant(root, tree, hierarchy, conn):
     popup.title("Delete Participant")
     popup.geometry("300x150")
 
-    tk.Label(popup, text="Delete Participant (Enter ID)").pack(pady=5)
+    tk.Label(popup, text="Delete Participant (Enter ID)").pack()
     delete_entry = tk.Entry(popup)
-    delete_entry.pack(pady=5)
+    delete_entry.pack()
 
     def delete_participant():
         try:
@@ -78,8 +76,7 @@ def open_delete_participant(root, tree, hierarchy, conn):
 
         except ValueError as e:
             messagebox.showerror("Error", "No participant ID found")
-
-    tk.Button(popup, text="Delete Participant", command=delete_participant).pack(pady=10)
+    tk.Button(popup, text="Delete Participant", command=delete_participant).pack()
 
 
 def open_new_simulation(root, tree, hierarchy, conn, label_h):
@@ -87,9 +84,9 @@ def open_new_simulation(root, tree, hierarchy, conn, label_h):
     popup.title("New Simulation")
     popup.geometry("300x150")
 
-    tk.Label(popup, text="Enter new hierarchy height (h)").pack(pady=5)
+    tk.Label(popup, text="Enter new hierarchy height (h)").pack()
     height_entry = tk.Entry(popup)
-    height_entry.pack(pady=5)
+    height_entry.pack()
 
     def reset_hierarchy():
         try:
@@ -119,8 +116,7 @@ def open_new_simulation(root, tree, hierarchy, conn, label_h):
 
         except ValueError:
             messagebox.showerror("Error", "Hierarchy height must be a positive integer.")
-
-    tk.Button(popup, text="Start New Simulation", command=reset_hierarchy).pack(pady=10)
+    tk.Button(popup, text="Start New Simulation", command=reset_hierarchy).pack()
 
 
 
@@ -128,10 +124,7 @@ def handle_distribution_logic(secret, hierarchy, conn, tree, q):
     max_chars = q.bit_length() // 8 
     
     if len(secret.encode('utf-8')) > max_chars:
-        messagebox.showerror("Secret Too Long", 
-            f"The secret is {len(secret)} characters long.\n"
-            f"Because we use a 256-bit prime (Q), the maximum length is {max_chars} characters.\n\n"
-            "Please use a shorter secret or a smaller key file.")
+        messagebox.showerror("Secret Too Long", f"The secret is {len(secret)} characters long. Because we use a 256-bit prime (Q), the maximum length is {max_chars} characters. Please use a shorter secret or a smaller key file.")
         return
     try:
         distribute_shares(secret, hierarchy, q, conn)
@@ -145,13 +138,14 @@ def handle_distribution_logic(secret, hierarchy, conn, tree, q):
         
         for row in rows:
             p_id, level, shares_json = row
-            display_shares = shares_json[:30] + "..." if shares_json else ""
+            display_shares = shares_json if shares_json else ""
             tree.insert("", "end", values=(p_id, level, display_shares))
             
         messagebox.showinfo("Success", "Secret has been distributed to all participants!")
         
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
 
 def handle_manual_input(hierarchy, conn, tree, q):
     secret = simpledialog.askstring("Input", "Enter the secret to share:", show='*')
@@ -161,7 +155,7 @@ def handle_manual_input(hierarchy, conn, tree, q):
 def handle_file_input(hierarchy, conn, tree, q):
     file_path = filedialog.askopenfilename(
         title="Select Secret File",
-        filetypes=[("Text files", "*.txt"), ("Key files", "*.key"), ("All files", "*.*")]
+        filetypes=[("Text files", "*.txt"), ("Key files", "*.key")]
     )
     if file_path:
         try:
@@ -196,8 +190,8 @@ def handle_decryption(hierarchy, tree, q):
         if participant and participant.shares:
             chosen_participants.append(participant)
             all_points.extend(participant.shares)
-    print(chosen_participants)
-    print(hierarchy.is_qualified(chosen_participants))
+    #print(chosen_participants)
+    #print(hierarchy.is_qualified(chosen_participants))
     if not hierarchy.is_qualified(chosen_participants)[0]:
         messagebox.showerror("Not Qualified", "The selected participants are not in the qualified group to decrypt.")
         return
@@ -205,7 +199,6 @@ def handle_decryption(hierarchy, tree, q):
     try:
         h = hierarchy.h
         recovered_int = recover_secret(all_points, h, q)
-        
         recovered_str = recovered_int.to_bytes((recovered_int.bit_length() + 7) // 8, 'big').decode('utf-8')
         
         messagebox.showinfo("Secret Recovered", f"The hidden secret is:\n\n{recovered_str}")
@@ -219,11 +212,11 @@ def open_attack_panel(hierarchy, q):
     attack_win.title("Security Sandbox: Manual Attack Simulation")
     attack_win.geometry("500x400")
 
-    tk.Label(attack_win, text="Input manual shares to test the system's resilience", font=("Arial", 10, "bold")).pack(pady=10)
+    tk.Label(attack_win, text="Input manual shares").pack()
     
     tk.Label(attack_win, text="Enter shares as JSON list: [[x1, y1], [x2, y2], ...]").pack()
     input_area = tk.Text(attack_win, height=10, width=50)
-    input_area.pack(padx=10, pady=5)
+    input_area.pack()
 
     def run_manual_test():
         try:
@@ -238,14 +231,14 @@ def open_attack_panel(hierarchy, q):
                 recovered_str = "[Binary Data / Non-readable]"
 
             messagebox.showwarning("Reconstruction Result", 
-                f"Recovered Integer: {str(recovered_int)[:50]}...\n\n"
+                f"Recovered Integer: {str(recovered_int)}\n\n"
                 f"Decoded String: {recovered_str}\n\n"
-                "As you can see, unauthorized or fake data results in total gibberish.")
+                "Result is total gibberish.")
                 
         except Exception as e:
             messagebox.showerror("Format Error", "Please enter valid JSON points: [[x,y],...]")
 
-    tk.Button(attack_win, text="Attempt Recovery", command=run_manual_test, bg="red", fg="white").pack(pady=10)
+    tk.Button(attack_win, text="Attempt Recovery", command=run_manual_test, bg="red", fg="white").pack()
 
 
 def run_collusion_brute_force(main_tree, hierarchy, q):
@@ -279,7 +272,7 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
     required_power = h + 1
 
     if total_power >= required_power:
-        messagebox.showinfo("Access Granted", f"Power {total_power} is sufficient to interpolate the polinomial.")
+        messagebox.showinfo("Enough points", f"Power {total_power} is sufficient to interpolate the polinomial.")
         return
 
     if not all_stolen_shares:
@@ -290,19 +283,17 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
     sim_win.title("Collusion Attack Simulator")
     sim_win.geometry("800x600")
     
-    tk.Label(sim_win, text="UNAUTHORIZED ACCESS ATTEMPT", 
-             font=("Courier New", 12, "bold"), fg="red").pack(pady=10)
+    tk.Label(sim_win, text="HACKING ATTEMPTS", fg="red").pack()
 
-    txt = tk.Text(sim_win, font=("Courier New", 9), bg="#0a0a0a", fg="#33ff33")
-    txt.pack(expand=True, fill="both", padx=15, pady=10)
+    txt = tk.Text(sim_win, bg="#000000", fg="#00ff00")
+    txt.pack(expand=True, fill="both")
     
     txt.insert(tk.END, f"[LOG] Colluding IDs: {', '.join(participant_ids)}\n")
     txt.insert(tk.END, f"[LOG] Combined Power: {total_power} / {required_power}\n")
     txt.insert(tk.END, "="*75 + "\n\n")
 
     fake_x = 999999
-    from decryption import recover_secret 
-
+    
     for i in range(1, 51):
         guess_y = random.randint(1, q - 1)
         test_points = all_stolen_shares + [[fake_x, guess_y]]
@@ -318,7 +309,7 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
             if byte_len > 0:
                 r_bytes = recovered_int.to_bytes(byte_len, 'big')
                 r_str = r_bytes.decode('utf-8', errors='replace')
-                clean_str = "".join(c if c.isprintable() else "?" for c in r_str)[:25]
+                clean_str = "".join(c if c.isprintable() else "?" for c in r_str)
             else:
                 clean_str = "[ZERO_RESULT]"
         except:
@@ -327,7 +318,7 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
         txt.insert(tk.END, f"Trial {i:02d} | Result: {clean_str}\n")
 
     txt.insert(tk.END, "\n" + "="*75 + "\n")
-    txt.insert(tk.END, "[RESULT] Brute-force failed. Perfect Secrecy maintained.")
+    txt.insert(tk.END, "Brute-force failed. Secret remained.")
     txt.config(state="disabled")
 
 
@@ -398,28 +389,30 @@ def run_bracketed_sharing(secret_str, hierarchy, q, conn, tree, set1_input, set2
         hierarchy.levels = original_levels
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
+
+
 def open_bracket_sharing_ui(hierarchy, q, conn, tree):
     top = tk.Toplevel()
     top.title("Bracketed Distribution")
     top.geometry("400x380")
 
-    tk.Label(top, text="Secret to Share:", font=("Arial", 10, "bold")).pack(pady=10)
+    tk.Label(top, text="Secret to Share:", font=("Arial", 10, "bold")).pack()
     secret_entry = tk.Entry(top, width=40)
-    secret_entry.pack(pady=5)
+    secret_entry.pack()
     secret_entry.focus_set()
 
-    tk.Label(top, text="Set 1 (No Offset):\n(e.g., 1,2)").pack(pady=5)
+    tk.Label(top, text="Set 1 (No Offset):\n(e.g., 1,2)").pack()
     set1_entry = tk.Entry(top, width=20)
     set1_entry.insert(0, "1,2")
-    set1_entry.pack(pady=5)
+    set1_entry.pack()
 
-    tk.Label(top, text="Set 2 (Offset +400):\n(e.g., 3,4,5)").pack(pady=5)
+    tk.Label(top, text="Set 2 (Offset +400):\n(e.g., 3,4)").pack()
     set2_entry = tk.Entry(top, width=20)
     set2_entry.insert(0, "3,4,5")
-    set2_entry.pack(pady=5)
+    set2_entry.pack()
 
     def start_process():
-        print("Button Clicked!")
+        #print("Button Clicked!")
         val_secret = secret_entry.get()
         val_s1 = set1_entry.get()
         val_s2 = set2_entry.get()
@@ -434,12 +427,8 @@ def open_bracket_sharing_ui(hierarchy, q, conn, tree):
         
         top.destroy()
 
-    btn = tk.Button(top, text="Execute Bracketed Distribution", 
-                    command=start_process, 
-                    bg="#2ecc71", fg="white", 
-                    font=("Arial", 11, "bold"), 
-                    padx=10, pady=10)
-    btn.pack(pady=20)
+    btn = tk.Button(top, text="Execute Bracketed Distribution", command=start_process)
+    btn.pack()
 
 
 
@@ -481,16 +470,14 @@ def visualize_cubic_discovery():
             plt.scatter(subset_x, subset_y, color=colors[i-1], s=120, 
                         edgecolors='black', zorder=5)
 
-        plt.title(f"Reconstructing a Cubic Secret (h=3)\n$f(x) = {true_coeffs[3]}x^3 + {true_coeffs[2]}x^2 + {true_coeffs[1]}x + {true_coeffs[0]}$", 
-                  fontsize=14, fontweight='bold')
-        plt.xlabel("X (Participant IDs)", fontsize=12)
-        plt.ylabel("Y (Computed Shares)", fontsize=12)
+        plt.title(f"Reconstructing a Cubic Secret (h=3)\n$f(x) = {true_coeffs[3]}x^3 + {true_coeffs[2]}x^2 + {true_coeffs[1]}x + {true_coeffs[0]}$")
+        plt.xlabel("X (Participant IDs)")
+        plt.ylabel("Y (Computed Shares)")
         
         
         plt.axvline(0, color='black', linewidth=1, alpha=0.5)
         plt.axhline(0, color='black', linewidth=1, alpha=0.5)
         
-        # Adjusting limits so the S-curve is visible
         plt.ylim(-200, 200) 
         plt.legend(loc='upper right')
         plt.grid(True, linestyle='--', alpha=0.4)
@@ -515,8 +502,7 @@ def show_infinite_possibilities():
     plt.plot(x_range, lp_a(x_range), 'g-', label="Possibility A polynomial: x^2 - 2x + 3")
     plt.plot(x_range, lp_b(x_range), 'r--', label="Possibility B polynomial: 2x^2 - 5x + 5")
 
-    plt.scatter(shared_x, shared_y, color='blue', s=150, zorder=5, 
-                label="Shared Knowledge (2 Points)")
+    plt.scatter(shared_x, shared_y, color='blue', s=150, zorder=5, label="Shared Knowledge (2 Points)")
 
     plt.title("Security Proof: 2 Points, Infinite Quadratic Solutions")
     plt.xlabel("X (Participant ID)")
@@ -525,7 +511,6 @@ def show_infinite_possibilities():
     plt.legend()
     plt.grid(True, alpha=0.3)
     
-    plt.text(0.2, 100, "Both curves fit the blue dots,\nbut lead to different secrets!", 
-             bbox=dict(facecolor='white', alpha=0.8))
+    plt.text(0.2, 100, "Both curves fit the blue dots,\nbut lead to different secrets!")
 
     plt.show()
