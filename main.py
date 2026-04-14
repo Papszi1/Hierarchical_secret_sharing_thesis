@@ -1,4 +1,4 @@
-from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel, run_collusion_brute_force, open_bracket_sharing_ui, visualize_cubic_discovery
+from buttonfunctions import open_add_participants, open_delete_participant, open_new_simulation, handle_decryption, handle_manual_input, handle_file_input, open_attack_panel, run_collusion_brute_force, open_bracket_sharing_ui, visualize_cubic_discovery, show_infinite_possibilities
 from initialization import Hierarchy
 from models import Participant
 from tkinter import ttk
@@ -110,6 +110,14 @@ visual_btn = tk.Button(
     fg="white",
     font=("Arial", 10, "bold")
 )
+security_btn = tk.Button(
+    button_frame, 
+    text="Ambiguity Demo", 
+    command=show_infinite_possibilities,
+    bg="#e67e22", 
+    fg="white",
+    font=("Arial", 10, "bold")
+)
 btn_add.pack(side=tk.LEFT, padx=5)
 btn_delete.pack(side=tk.LEFT, padx=5)
 btn_new_sim.pack(side=tk.LEFT, padx=5)
@@ -120,6 +128,7 @@ btn_attack.pack(side=tk.LEFT, padx=5)
 btn_brute.pack(side=tk.LEFT, padx=5)
 bracket_btn.pack(side=tk.LEFT, padx=5)
 visual_btn.pack(side=tk.LEFT, padx=10, pady=10)
+security_btn.pack(side=tk.LEFT, padx=10)
 
 label = tk.Label(root, text="Participants")
 label.pack(anchor="w", padx=10)

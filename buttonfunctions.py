@@ -77,7 +77,7 @@ def open_delete_participant(root, tree, hierarchy, conn):
             delete_entry.delete(0, tk.END)
 
         except ValueError as e:
-            messagebox.showerror("Error", str(e))
+            messagebox.showerror("Error", "No participant ID found")
 
     tk.Button(popup, text="Delete Participant", command=delete_participant).pack(pady=10)
 
@@ -199,7 +199,7 @@ def handle_decryption(hierarchy, tree, q):
     print(chosen_participants)
     print(hierarchy.is_qualified(chosen_participants))
     if not hierarchy.is_qualified(chosen_participants)[0]:
-        messagebox.showerror("Not Qualified", "The selected participants do not have enough power to decrypt.")
+        messagebox.showerror("Not Qualified", "The selected participants are not in the qualified group to decrypt.")
         return
 
     try:
@@ -279,7 +279,7 @@ def run_collusion_brute_force(main_tree, hierarchy, q):
     required_power = h + 1
 
     if total_power >= required_power:
-        messagebox.showinfo("Access Granted", f"Power {total_power} is sufficient to decrypt normally.")
+        messagebox.showinfo("Access Granted", f"Power {total_power} is sufficient to interpolate the polinomial.")
         return
 
     if not all_stolen_shares:
@@ -427,8 +427,10 @@ def open_bracket_sharing_ui(hierarchy, q, conn, tree):
         if not val_secret:
             messagebox.showwarning("Warning", "Secret is empty.")
             return
-        
-        run_bracketed_sharing(val_secret, hierarchy, q, conn, tree, val_s1, val_s2)
+        if len(val_secret) > 32:
+            messagebox.showerror("Too long message", f"The secret is {len(val_secret)} characters long. Because we use a 256-bit prime (Q), the maximum length is 32 characters. Please use a shorter secret or a smaller key file.")
+        else:
+            run_bracketed_sharing(val_secret, hierarchy, q, conn, tree, val_s1, val_s2)
         
         top.destroy()
 
@@ -497,3 +499,33 @@ def visualize_cubic_discovery():
 
     except Exception as e:
         messagebox.showerror("Error", f"Visualization failed: {e}")
+
+def show_infinite_possibilities():
+    shared_x = [1, 2]
+    shared_y = [2, 3]
+
+    x_range = np.linspace(-1, 4, 200)
+
+    lp_a = lagrange([1, 2, 3], [2, 3, 6]) 
+    
+    lp_b = lagrange([1, 2, 3], [2, 3, 8]) 
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(x_range, lp_a(x_range), 'g-', label="Possibility A polynomial: x^2 - 2x + 3")
+    plt.plot(x_range, lp_b(x_range), 'r--', label="Possibility B polynomial: 2x^2 - 5x + 5")
+
+    plt.scatter(shared_x, shared_y, color='blue', s=150, zorder=5, 
+                label="Shared Knowledge (2 Points)")
+
+    plt.title("Security Proof: 2 Points, Infinite Quadratic Solutions")
+    plt.xlabel("X (Participant ID)")
+    plt.ylabel("Y (Value)")
+    plt.axvline(0, color='black', linewidth=1)
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    plt.text(0.2, 100, "Both curves fit the blue dots,\nbut lead to different secrets!", 
+             bbox=dict(facecolor='white', alpha=0.8))
+
+    plt.show()
